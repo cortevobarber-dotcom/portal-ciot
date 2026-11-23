@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0a0f" />
+<meta name="description" content="Portal CIOT — emissão de CIOT direto na ANTT pela API EmiteAí." />
+<title>Portal CIOT · Emissão ANTT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#0a0a0f; --bg-2:#141420; --bg-3:#1e1e2e; --bg-card:rgba(30,30,46,.62); --bg-glass:rgba(20,20,32,.72);
+  --text:#f8fafc; --text-2:#94a3b8; --muted:#64748b;
+  --primary:#2563eb; --primary-l:#3b82f6; --primary-d:#1d4ed8;
+  --accent:#7c3aed; --accent-l:#8b5cf6; --accent-d:#6d28d9;
+  --neon:#06b6d4; --neon-l:#22d3ee; --neon-glow:rgba(6,182,212,.30);
+  --ok:#10b981; --warn:#f59e0b; --err:#ef4444;
+  --border:rgba(148,163,184,.12); --border-h:rgba(148,163,184,.25); --border-glow:rgba(37,99,235,.40);
+  --grad-primary:linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);
+  --grad-neon:linear-gradient(135deg,#2563eb 0%,#06b6d4 100%);
+  --grad-text:linear-gradient(135deg,#3b82f6 0%,#22d3ee 50%,#8b5cf6 100%);
+  --grad-card:linear-gradient(160deg,rgba(37,99,235,.08) 0%,rgba(124,58,237,.06) 100%);
+  --font-body:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-head:"Space Grotesk","Inter",sans-serif;
+  --r:16px; --r-sm:11px;
+  --shadow:0 18px 44px -22px rgba(0,0,0,.9);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:var(--font-body);font-size:14.5px;line-height:1.6;
+  background-image:
+    radial-gradient(ellipse at 12% 0%,rgba(37,99,235,.16) 0%,transparent 46%),
+    radial-gradient(ellipse at 88% 8%,rgba(124,58,237,.13) 0%,transparent 44%),
+    radial-gradient(ellipse at 50% 100%,rgba(6,182,212,.08) 0%,transparent 55%);
+  background-attachment:fixed;
+}
+.hide{display:none !important}
+.wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+
+/* ---------- topbar ---------- */
+header{position:sticky;top:0;z-index:60;background:var(--bg-glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
+.bar{display:flex;align-items:center;gap:14px;height:66px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--font-head);font-weight:700;font-size:16px;letter-spacing:-.01em}
+.logo{
+  width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;
+  background:var(--grad-primary);color:#fff;font-family:var(--font-head);font-weight:700;font-size:17px;
+  box-shadow:0 8px 22px -8px rgba(124,58,237,.85), inset 0 1px 0 rgba(255,255,255,.25);
+}
+.brand small{display:block;font-family:var(--font-body);font-weight:600;font-size:8.5px;letter-spacing:.20em;color:var(--muted);text-transform:uppercase;line-height:1.5}
+.env{
+  margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.10em;padding:5px 10px;border-radius:999px;
+  border:1px solid var(--border-h);color:var(--text-2);background:rgba(148,163,184,.07);white-space:nowrap
+}
+.env.prod{color:#a7f3d0;border-color:rgba(16,185,129,.45);background:rgba(16,185,129,.10)}
+.env.homolog{color:#fde68a;border-color:rgba(245,158,11,.40);background:rgba(245,158,11,.09)}
+
+/* ---------- nav ---------- */
+nav{display:flex;gap:4px;width:100%;overflow-x:auto;padding:0 0 10px;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{
+  font-family:var(--font-body);font-size:12.5px;font-weight:600;color:var(--text-2);
+  background:transparent;border:1px solid transparent;border-radius:999px;padding:8px 15px;cursor:pointer;
+  white-space:nowrap;transition:.18s;flex:0 0 auto
+}
+nav button:hover{color:var(--text);background:rgba(148,163,184,.08)}
+nav button.active{color:#fff;background:var(--grad-primary);border-color:transparent;box-shadow:0 10px 26px -12px rgba(37,99,235,.9)}
+
+/* ---------- cabeçalho de página ---------- */
+main{padding:26px 0 60px}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:7px;font-size:10px;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--neon-l);margin-bottom:9px
+}
+.eyebrow::before{content:"";width:16px;height:2px;border-radius:2px;background:var(--grad-neon)}
+h1{
+  font-family:var(--font-head);font-size:30px;line-height:1.15;letter-spacing:-.022em;margin:0 0 7px;font-weight:700;
+  background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent
+}
+.sub{color:var(--text-2);font-size:13.5px;margin:0 0 20px;max-width:660px}
+h2{font-family:var(--font-head);font-size:13px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;color:var(--text-2);margin:26px 0 10px;display:flex;align-items:center;gap:9px}
+h2::before{content:"";width:3px;height:13px;border-radius:2px;background:var(--grad-neon);flex:0 0 auto}
+
+/* ---------- cards ---------- */
+.card{
+  background:var(--bg-card);background-image:var(--grad-card);
+  border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px;
+  box-shadow:var(--shadow);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)
+}
+.card h2{margin-top:0}
+
+/* ---------- grid / campos ---------- */
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+label{display:block;font-size:10.5px;font-weight:600;letter-spacing:.075em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+input,select,textarea{
+  width:100%;font-family:var(--font-body);font-size:14px;color:var(--text);
+  background:#0d0d15;border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:10px 12px;outline:none;transition:.16s;-webkit-appearance:none;appearance:none
+}
+select{
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:32px
+}
+textarea{min-height:78px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;letter-spacing:.02em}
+input::placeholder,textarea::placeholder{color:#475569}
+input:focus,select:focus,textarea:focus{border-color:var(--border-glow);box-shadow:0 0 0 3px rgba(37,99,235,.16),0 0 22px -8px var(--neon-glow);background:#0f0f1a}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--primary);border-radius:4px}
+.chk{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text-2)}
+.chk input{margin:0}
+.hint{font-size:12px;color:var(--muted);line-height:1.55;margin-top:8px}
+
+/* ---------- botões ---------- */
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.btn{
+  font-family:var(--font-body);font-size:14px;font-weight:600;color:#fff;cursor:pointer;
+  background:var(--grad-primary);border:1px solid transparent;border-radius:12px;padding:13px 22px;
+  box-shadow:0 14px 30px -14px rgba(37,99,235,.95),inset 0 1px 0 rgba(255,255,255,.18);
+  transition:.18s;letter-spacing:.005em
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 18px 36px -14px rgba(124,58,237,.9),inset 0 1px 0 rgba(255,255,255,.22)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+.ghost{
+  font-family:var(--font-body);font-size:13px;font-weight:600;color:var(--text-2);cursor:pointer;
+  background:rgba(148,163,184,.06);border:1px solid var(--border-h);border-radius:11px;padding:11px 16px;transition:.16s
+}
+.ghost:hover{color:var(--text);border-color:var(--border-glow);background:rgba(37,99,235,.10)}
+.mini{
+  font-family:var(--font-body);font-size:11.5px;font-weight:600;color:var(--text-2);cursor:pointer;
+  background:rgba(148,163,184,.07);border:1px solid var(--border);border-radius:8px;padding:5px 10px;transition:.16s;white-space:nowrap
+}
+.mini:hover{color:#fff;border-color:var(--border-glow);background:rgba(37,99,235,.16)}
+
+/* ---------- tabelas ---------- */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{
+  text-align:left;font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  padding:8px 10px;border-bottom:1px solid var(--border-h);white-space:nowrap
+}
+td{padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr{transition:.14s}
+tbody tr:hover{background:rgba(37,99,235,.06)}
+tbody tr:last-child td{border-bottom:none}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;letter-spacing:.01em}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:26px 10px}
+
+/* ---------- pills de status ---------- */
+.pill{
+  display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.07em;
+  padding:4px 10px;border-radius:999px;border:1px solid;text-transform:uppercase;white-space:nowrap
+}
+.pill::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;flex:0 0 auto}
+.s-AUTORIZADO{color:#6ee7b7;border-color:rgba(16,185,129,.45);background:rgba(16,185,129,.12)}
+.s-PROCESSANDO,.s-ENVIANDO{color:#93c5fd;border-color:rgba(37,99,235,.45);background:rgba(37,99,235,.12)}
+.s-REJEITADO{color:#fca5a5;border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.12)}
+.s-ERRO,.s-ERRO_ENVIO{color:#fca5a5;border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.12)}
+.s-CANCELADO{color:#cbd5e1;border-color:rgba(148,163,184,.35);background:rgba(148,163,184,.10)}
+
+/* ---------- resultado (kv) ---------- */
+.kv{display:grid;grid-template-columns:190px 1fr;gap:0;font-size:13px}
+.kv>div{padding:9px 0;border-bottom:1px dashed var(--border)}
+.kv>div:nth-child(odd){color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding-top:11px}
+.kv>div:nth-last-child(-n+2){border-bottom:none}
+
+/* ---------- aviso ---------- */
+.banner{
+  border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.09);color:#fde68a;
+  border-radius:12px;padding:11px 14px;font-size:12.5px;margin-bottom:16px;line-height:1.5
+}
+.banner b{color:#fff}
+
+/* ---------- abas de cadastro ---------- */
+.tabs2{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;scrollbar-width:none}
+.tabs2::-webkit-scrollbar{display:none}
+.tabs2 button{
+  font-family:var(--font-body);font-size:12.5px;font-weight:600;color:var(--text-2);cursor:pointer;
+  background:rgba(148,163,184,.06);border:1px solid var(--border);border-radius:10px;padding:9px 14px;white-space:nowrap;transition:.16s
+}
+.tabs2 button.on{color:#fff;background:var(--grad-neon);border-color:transparent;box-shadow:0 10px 24px -14px rgba(6,182,212,.9)}
+
+/* ---------- details ---------- */
+details{border:1px solid var(--border);border-radius:var(--r);background:rgba(20,20,32,.5);padding:0 16px;margin-bottom:16px}
+details[open]{padding-bottom:16px}
+summary{
+  cursor:pointer;list-style:none;padding:15px 0;font-family:var(--font-head);font-size:12px;font-weight:600;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--text-2);display:flex;align-items:center;gap:9px
+}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"";width:3px;height:13px;border-radius:2px;background:var(--grad-primary)}
+summary::after{content:"+";margin-left:auto;font-size:17px;color:var(--muted);font-weight:400}
+details[open] summary::after{content:"–"}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:200;
+  background:rgba(20,20,32,.96);border:1px solid var(--border-h);border-left:3px solid var(--primary);
+  color:var(--text);font-size:13px;font-weight:500;padding:12px 18px;border-radius:12px;
+  box-shadow:0 22px 50px -20px #000;max-width:min(92vw,440px);backdrop-filter:blur(14px)
+}
+.toast.ok{border-left-color:var(--ok)}
+.toast.err{border-left-color:var(--err)}
+
+/* ---------- ação principal fixa no mobile ---------- */
+.action-bar{
+  position:sticky;bottom:0;z-index:40;display:flex;gap:10px;padding:12px 0 14px;margin-top:6px;
+  background:linear-gradient(180deg,rgba(10,10,15,0) 0%,rgba(10,10,15,.92) 42%,var(--bg) 100%)
+}
+.action-bar .btn{flex:1;min-width:170px}
+
+/* ---------- rodapé ---------- */
+footer{border-top:1px solid var(--border);margin-top:34px;padding:22px 0 34px;color:var(--muted);font-size:11.5px;line-height:1.7}
+footer b{color:var(--text-2);font-family:var(--font-head);letter-spacing:.04em}
+
+@media(max-width:860px){
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+  h1{font-size:25px}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .card{padding:15px;border-radius:14px}
+  .kv{grid-template-columns:1fr;gap:0}
+  .kv>div:nth-child(odd){padding-bottom:0;border-bottom:none}
+  .kv>div:nth-child(even){padding-top:2px}
+  .bar{height:auto;padding:11px 0 4px}
+  .env{margin-left:auto}
+  main{padding:20px 0 40px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <div class="brand">
+      <span class="logo">C</span>
+      <span>Portal CIOT<small>Efatá Soluções</small></span>
+    </div>
+    <span id="envBadge" class="env">HOMOLOGAÇÃO</span>
+    <nav>
+      <button data-tab="emitir" class="active">Emitir CIOT</button>
+      <button data-tab="historico">Histórico</button>
+      <button data-tab="cadastros">Cadastros</button>
+      <button data-tab="config">Configuração</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ================= EMITIR ================= -->
+<section id="tab-emitir">
+  <span class="eyebrow">Tecnologia que transforma</span>
+  <h1>Emissão de CIOT</h1>
+  <p class="sub">Emita o CIOT direto na ANTT, sem complicação e sem servidor no meio do caminho. Preencha, envie e acompanhe a autorização em tempo real.</p>
+  <div id="aviso" class="banner hide"></div>
+
+  <div class="card">
+    <div class="grid g3">
+      <div><label>Fonte do CIOT</label>
+        <select id="fonte" onchange="onFonte()"><option value="cte">Chave de CT-e</option><option value="dt">Número do DT</option></select>
+      </div>
+      <div><label>KM da viagem</label><input id="km" type="number" step="0.1" inputmode="decimal" placeholder="850.5" /></div>
+      <div><label>Qtd. de eixos (CIOT)</label><input id="qtd_eixos" type="number" inputmode="numeric" placeholder="6" /></div>
+    </div>
+    <div style="margin-top:12px">
+      <div id="boxCte"><label>Chave(s) de CT-e — 44 dígitos</label><textarea id="chavesCte" inputmode="numeric" placeholder="35260000000000000000577510000006251315..."></textarea><div class="hint">Uma chave por linha. Pode colar várias de uma vez.</div></div>
+      <div id="boxDt" class="hide"><label>Número do DT</label><input id="dt" inputmode="numeric" placeholder="0009426385" /><div class="hint">O DT é expandido nos CT-es vinculados à carga.</div></div>
+    </div>
+  </div>
+
+  <h2>Motorista</h2>
+  <div class="card">
+    <div style="margin-bottom:12px"><label>Usar cadastrado</label><select id="motoristaSel" onchange="preencherMotorista()"><option value="">— usar cadastrado —</option></select></div>
+    <div class="grid g4">
+      <div><label>CPF *</label><input id="m_cpf" inputmode="numeric" placeholder="000.000.000-00" /></div>
+      <div><label>Nome completo</label><input id="m_nome" /></div>
+      <div><label>CNH nº</label><input id="m_cnh" inputmode="numeric" /></div>
+      <div><label>Categoria</label><input id="m_cnh_cat" placeholder="E" maxlength="2" style="text-transform:uppercase" /></div>
+    </div>
+    <div class="grid g4" style="margin-top:12px">
+      <div><label>Vencimento CNH</label><input id="m_cnh_venc" type="date" /></div>
+      <div><label>Telefone</label><input id="m_tel" inputmode="tel" placeholder="31999999999" /></div>
+      <div><label>PIX (tipo)</label><select id="m_pix_tipo"><option value="">—</option><option>CPF</option><option>CNPJ</option><option>CELULAR</option><option>EMAIL</option><option>ALEATORIA</option></select></div>
+      <div><label>Chave PIX</label><input id="m_pix" /></div>
+    </div>
+  </div>
+
+  <h2>Proprietário do veículo</h2>
+  <div class="card">
+    <div style="margin-bottom:12px"><label>Usar cadastrado</label><select id="proprietarioSel" onchange="preencherProprietario()"><option value="">— usar cadastrado —</option></select></div>
+    <div class="grid g4">
+      <div><label>CPF/CNPJ *</label><input id="p_cpfcnpj" placeholder="000.000.000-00" /></div>
+      <div><label>Nome / Razão social</label><input id="p_nome" /></div>
+      <div><label>Categoria</label><select id="p_cat"><option value="">—</option><option>TAC_INDEPENDENTE</option><option>TAC_AGREGADO</option><option>CTC</option><option>ETC</option><option>OUTROS</option></select></div>
+      <div><label>RNTRC</label><input id="p_rntrc" inputmode="numeric" /></div>
+    </div>
+    <div class="grid g3" style="margin-top:12px">
+      <div><label>CEP</label><input id="p_cep" inputmode="numeric" /></div>
+      <div><label>UF</label><select id="p_uf" class="uf"></select></div>
+      <div><label>Cód. IBGE</label><input id="p_ibge" inputmode="numeric" placeholder="3167202" /></div>
+    </div>
+  </div>
+
+  <h2>Veículo</h2>
+  <div class="card">
+    <div style="margin-bottom:12px"><label>Usar cadastrado</label><select id="veiculoSel" onchange="preencherVeiculo()"><option value="">— usar cadastrado —</option></select></div>
+    <div class="grid g4">
+      <div><label>Placa *</label><input id="v_placa" placeholder="ABC1D23" style="text-transform:uppercase" /></div>
+      <div><label>RENAVAM</label><input id="v_renavam" inputmode="numeric" /></div>
+      <div><label>Eixos do veículo</label><input id="v_eixos" type="number" inputmode="numeric" /></div>
+      <div><label>Tipo de rodado</label><select id="v_rodado"><option value="">—</option><option>CAVALO_MECANICO</option><option>CARRETA</option><option>TRUCK</option><option>TOCO</option><option>TRES_QUARTOS</option><option>VAN</option><option>UTILITARIO</option><option>OUTROS</option></select></div>
+    </div>
+    <div class="grid g4" style="margin-top:12px">
+      <div><label>Carroceria</label><select id="v_carroceria"><option value="">—</option><option>ABERTA</option><option>FECHADA_BAU</option><option>GRANELEIRA</option><option>PORTA_CONTAINER</option><option>SIDER</option><option>NAO_APLICAVEL</option></select></div>
+      <div><label>UF da placa</label><select id="v_uf" class="uf"></select></div>
+      <div><label>Tara (kg)</label><input id="v_tara" type="number" inputmode="decimal" /></div>
+      <div><label>Capacidade (kg)</label><input id="v_cap" type="number" inputmode="decimal" /></div>
+    </div>
+    <div style="margin-top:12px"><label>Reboques (placas separadas por vírgula)</label><input id="v_reboques" placeholder="XYZ9A87, QRS1B23" style="text-transform:uppercase" /></div>
+  </div>
+
+  <h2>Dados da operação</h2>
+  <div class="card">
+    <div class="grid g4">
+      <div><label>Tipo de operação *</label><input id="d_tipoop" value="01" inputmode="numeric" /></div>
+      <div><label>Tipo de carga *</label><select id="d_tipocarga">
+        <option value="CARGA_GERAL">Carga geral</option><option value="GRANEL_SOLIDO">Granel sólido</option><option value="GRANEL_LIQUIDO">Granel líquido</option>
+        <option value="CONTEINERIZADA">Conteinerizada</option><option value="FRIGORIFICA">Frigorífica</option><option value="NEOGRANEL">Neogranel</option>
+        <option value="CARGA_GRANEL_PRESSURIZADA">Granel pressurizada</option><option value="PERIGOSA_CARGA_GERAL">Perigosa geral</option>
+        <option value="PERIGOSA_CONTAINERIZADA">Perigosa conteinerizada</option><option value="PERIGOSA_FRIGORIFICADA">Perigosa frigorífica</option>
+        <option value="PERIGOSA_GRANEL_LIQUIDO">Perigosa granel líquido</option><option value="PERIGOSA_GRANEL_SOLIDA">Perigosa granel sólido</option>
+      </select></div>
+      <div><label>Quem recebe *</label><select id="d_participante"><option value="MOTORISTA">Motorista</option><option value="CONTRATADO">Contratado</option></select></div>
+      <div><label>NCM predominante *</label><input id="d_ncm" inputmode="numeric" maxlength="10" placeholder="27101259" /></div>
+    </div>
+    <div class="grid g4" style="margin-top:12px">
+      <div><label>Valor do CIOT (R$) *</label><input id="d_valorciot" type="number" step="0.01" inputmode="decimal" /></div>
+      <div><label>Frete (R$)</label><input id="d_valorfrete" type="number" step="0.01" inputmode="decimal" /></div>
+      <div><label>Valor da carga (R$)</label><input id="d_valorcarga" type="number" step="0.01" inputmode="decimal" /></div>
+      <div><label>Combustível (R$)</label><input id="d_valorcomb" type="number" step="0.01" inputmode="decimal" /></div>
+    </div>
+    <div class="grid g4" style="margin-top:12px">
+      <div><label>Adiantamento (R$) *</label><input id="d_adiant" type="number" step="0.01" inputmode="decimal" value="0" /></div>
+      <div><label>% adiantamento</label><input id="d_percadiant" type="number" step="0.01" inputmode="decimal" /></div>
+      <div><label>Peso da carga (kg)</label><input id="d_peso" type="number" step="0.01" inputmode="decimal" /></div>
+      <div><label>Início previsto</label><input id="d_inicio" type="date" /></div>
+    </div>
+    <div class="grid g4" style="margin-top:12px">
+      <div><label>Fim previsto</label><input id="d_fim" type="date" /></div>
+      <div><label>Origem cidade</label><input id="d_origem" /></div>
+      <div><label>Origem UF</label><select id="d_origem_uf" class="uf"></select></div>
+      <div><label>Destino cidade</label><input id="d_destino" /></div>
+    </div>
+    <div class="grid g4" style="margin-top:12px">
+      <div><label>Destino UF</label><select id="d_destino_uf" class="uf"></select></div>
+      <div><label>Tomador CPF/CNPJ</label><input id="d_tomador" /></div>
+      <div><label>Nome do tomador</label><input id="d_tomador_nome" /></div>
+      <div><label>Destinatário CPF/CNPJ</label><input id="d_dest" /></div>
+    </div>
+  </div>
+
+  <details>
+    <summary>MDF-e automático (opcional)</summary>
+    <div class="grid g4">
+      <div class="chk" style="grid-column:1/-1"><input type="checkbox" id="md_gerar" /><span>Emitir MDF-e após autorizar o CIOT</span></div>
+      <div><label>UF inicial</label><select id="md_ufi" class="uf"></select></div>
+      <div><label>UF final</label><select id="md_uff" class="uf"></select></div>
+      <div><label>Município inicial</label><input id="md_muni" /></div>
+      <div><label>Município final</label><input id="md_munf" /></div>
+      <div><label>IBGE inicial</label><input id="md_ibgei" inputmode="numeric" /></div>
+      <div><label>IBGE final</label><input id="md_ibgef" inputmode="numeric" /></div>
+      <div><label>Data/hora inicial</label><input id="md_di" type="datetime-local" /></div>
+      <div><label>Data/hora final</label><input id="md_df" type="datetime-local" /></div>
+      <div><label>Vale-pedágio (R$)</label><input id="md_vp" type="number" step="0.01" inputmode="decimal" /></div>
+      <div><label>CNPJ fornecedor VP</label><input id="md_vpcnpj" /></div>
+      <div><label>Nº comprovante VP</label><input id="md_vpnum" /></div>
+    </div>
+  </details>
+
+  <div class="action-bar">
+    <button class="btn" id="btnEmitir" onclick="emitir()">Emitir CIOT</button>
+    <button class="ghost" onclick="verJson()">Ver JSON</button>
+  </div>
+
+  <div id="resultado"></div>
+</section>
+
+<!-- ================= HISTÓRICO ================= -->
+<section id="tab-historico" class="hide">
+  <span class="eyebrow">Do conceito à entrega</span>
+  <h1>Histórico de emissões</h1>
+  <p class="sub">Tudo o que você emitiu fica salvo neste aparelho. Atualize o status quando quiser consultando a ANTT.</p>
+  <div class="card">
+    <div class="row" style="margin-bottom:14px">
+      <input id="busca" placeholder="Buscar por placa, motorista ou nº do CIOT" style="flex:1;min-width:180px" oninput="renderHistorico()" />
+      <button class="ghost" onclick="renderHistorico()">Atualizar</button>
+    </div>
+    <div id="historicoTabela"></div>
+  </div>
+</section>
+
+<!-- ================= CADASTROS ================= -->
+<section id="tab-cadastros" class="hide">
+  <span class="eyebrow">Sem retrabalho</span>
+  <h1>Cadastros</h1>
+  <p class="sub">Motoristas, veículos e proprietários ficam prontos para reutilizar em cada emissão. Salvo neste aparelho.</p>
+  <div class="tabs2" id="cadTabs">
+    <button data-cad="motoristas" class="on">Motoristas</button>
+    <button data-cad="veiculos">Veículos</button>
+    <button data-cad="proprietarios">Proprietários</button>
+    <button data-cad="participantes">Tomadores</button>
+  </div>
+  <div class="card" id="cadPanel"></div>
+</section>
+
+<!-- ================= CONFIG ================= -->
+<section id="tab-config" class="hide">
+  <span class="eyebrow">Configuração</span>
+  <h1>Conexão com a EmiteAí</h1>
+  <p class="sub">Dados da transportadora e token de acesso. Ficam salvos apenas neste aparelho, sem passar por servidor nenhum.</p>
+  <div class="card">
+    <div class="grid g2">
+      <div><label>CNPJ do transportador *</label><input id="c_cnpj" placeholder="00.000.000/0000-00" /></div>
+      <div><label>Nome da transportadora</label><input id="c_nome" /></div>
+    </div>
+    <div style="margin-top:12px"><label>Token EmiteAí (x-token) *</label><input id="c_token" type="password" placeholder="cole aqui o token" autocomplete="off" /></div>
+    <div class="grid g2" style="margin-top:12px">
+      <div><label>Ambiente</label><select id="c_ambiente"><option value="homolog">Homologação (teste)</option><option value="prod">Produção</option></select></div>
+      <div><label>Diagnóstico</label><button class="ghost" style="width:100%" onclick="testarToken()">Testar token na EmiteAí</button></div>
+    </div>
+    <div class="row" style="margin-top:16px"><button class="btn" onclick="salvarCfg()">Salvar configuração</button></div>
+    <div id="cfgStatus" class="hint"></div>
+  </div>
+  <div class="card">
+    <h2 style="margin-top:0">Backup dos dados</h2>
+    <p class="hint" style="margin-top:0">Os dados vivem neste navegador. Faça backup antes de trocar de aparelho ou limpar o navegador.</p>
+    <div class="row" style="margin-top:14px">
+      <button class="ghost" onclick="exportar()">Baixar backup</button>
+      <button class="ghost" onclick="document.getElementById('importFile').click()">Importar backup</button>
+      <input type="file" id="importFile" accept="application/json" class="hide" onchange="importar(this)" />
+      <button class="ghost" style="color:#fca5a5;border-color:rgba(239,68,68,.40)" onclick="limparTudo()">Apagar tudo</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2 style="margin-top:0">Como funciona</h2>
+    <p class="hint" style="margin-top:0">
+      O app fala direto com a API da EmiteAí usando o seu token. Nenhum servidor intermediário guarda seus dados.
+      A emissão é assíncrona: o app envia, recebe o ticket e consulta até autorizar. CIOT rejeitado pode ser corrigido e reenviado.
+      Se a homologação da EmiteAí estiver indisponível (erro 503), aguarde e tente de novo.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <b>EFATÁ SOLUÇÕES</b> · Portal CIOT — tecnologia acessível que transforma negócios.<br />
+  Emissão oficial pela API EmiteAí. A validade do CIOT é a consulta na ANTT.
+</footer>
+
+</main>
+
+<script>
+/* ============ estado e armazenamento ============ */
+const KEY = 'portal_ciot_v1';
+const UFS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = (v) => (v === undefined || v === null || v === '') ? '—' : Number(v).toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+const dtf = (s) => s ? new Date(s).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' }) : '—';
+const onlyDigits = (v) => String(v ?? '').replace(/\D/g, '');
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+let db = { cfg: { cnpj: '', nome: '', token: '', ambiente: 'homolog' }, motoristas: [], veiculos: [], proprietarios: [], participantes: [], emissoes: [] };
+let pollTimer = null;
+
+function carregar() {
+  try { const raw = localStorage.getItem(KEY); if (raw) db = { ...db, ...JSON.parse(raw) }; } catch {}
+}
+function salvar() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { toast('Falha ao salvar neste navegador.', 'err'); } }
+
+/* ============ validações ============ */
+function validaCPF(v) {
+  const c = onlyDigits(v); if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
+  let s = 0; for (let i = 0; i < 9; i++) s += +c[i] * (10 - i);
+  let d1 = (s * 10) % 11; if (d1 === 10) d1 = 0; if (d1 !== +c[9]) return false;
+  s = 0; for (let i = 0; i < 10; i++) s += +c[i] * (11 - i);
+  let d2 = (s * 10) % 11; if (d2 === 10) d2 = 0; return d2 === +c[10];
+}
+function validaCNPJ(v) {
+  const c = onlyDigits(v); if (c.length !== 14 || /^(\d)\1{13}$/.test(c)) return false;
+  const calc = (b, w) => { let s = 0; for (let i = 0; i < w.length; i++) s += +b[i] * w[i]; const r = s % 11; return r < 2 ? 0 : 11 - r; };
+  return calc(c, [5,4,3,2,9,8,7,6,5,4,3,2]) === +c[12] && calc(c, [6,5,4,3,2,9,8,7,6,5,4,3,2]) === +c[13];
+}
+const validaCpfCnpj = (v) => { const c = onlyDigits(v); return c.length === 11 ? validaCPF(c) : c.length === 14 ? validaCNPJ(c) : false; };
+const placaOk = (v) => /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, ''));
+const normPlaca = (v) => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+const isoDt = (v) => v ? (String(v).length === 10 ? `${v}T00:00:00.000+00:00` : new Date(v).toISOString().replace('Z', '+00:00')) : undefined;
+
+/* ============ cliente EmiteAí (direto do navegador) ============ */
+const BASES = { homolog: 'https://homolog.api.emiteai.com.br', prod: 'https://api.emiteai.com.br' };
+const STATUS_FINAIS = ['AUTORIZADO','AUTORIZADA','REJEITADO','REJEITADA','CANCELADO','CANCELADA','ERRO'];
+
+function traduzErro(status, msg) {
+  if (status === 400) return 'Dados recusados pela EmiteAí: ' + msg;
+  if (status === 401) return 'Token da EmiteAí inválido ou expirado. Confira em Config.';
+  if (status === 403) return 'Token sem permissão para emitir CIOT (EMITE_CIOT_AVULSO). Fale com a EmiteAí.';
+  if (status === 404) return 'CNPJ do transportador não cadastrado na base da EmiteAí. ' + msg;
+  if (status === 422) return 'CT-e/DT não encontrado na base da EmiteAí. ' + msg;
+  if (status === 429) return 'Muitas requisições. Aguarde alguns segundos.';
+  if (status === 503) return 'EmiteAí indisponível agora (503). Tente em alguns minutos.';
+  if (status >= 500) return 'Instabilidade na EmiteAí (' + status + '). ' + msg;
+  return msg;
+}
+
+async function api(path, { method = 'GET', body, idem } = {}, tentativa = 1) {
+  if (!db.cfg.token) throw new Error('Configure o token da EmiteAí em Config.');
+  const url = BASES[db.cfg.ambiente === 'prod' ? 'prod' : 'homolog'] + path;
+  const headers = { 'Content-Type': 'application/json', Accept: 'application/json', 'x-token': db.cfg.token };
+  if (idem) headers['Idempotency-Key'] = idem;
+  let res, text;
+  try {
+    res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined });
+    text = await res.text();
+  } catch (e) {
+    throw new Error('Sem conexão com a EmiteAí. Verifique a internet.');
+  }
+  let json = null; try { json = text ? JSON.parse(text) : null; } catch { json = text; }
+  if (!res.ok) {
+    if ([502, 503, 504].includes(res.status) && tentativa <= 3) {
+      await new Promise((r) => setTimeout(r, tentativa * 1500));
+      return api(path, { method, body, idem }, tentativa + 1);
+    }
+    throw new Error(traduzErro(res.status, (json && (json.message || json.error)) || String(text).slice(0, 200)));
+  }
+  return json;
+}
+
+/* ============ payload ============ */
+function montarPayload() {
+  const clean = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== ''));
+  const part = (cnpj, nome) => cnpj ? clean({ cpfCnpj: onlyDigits(cnpj), nome: nome || undefined, tipo: onlyDigits(cnpj).length === 11 ? 'PESSOA_FISICA' : 'PESSOA_JURIDICA' }) : undefined;
+  const loc = (cidade, uf) => (cidade || uf) ? clean({ cidade, uf }) : undefined;
+  const reboques = $('v_reboques').value.split(/[\s,;]+/).map(normPlaca).filter(Boolean);
+  const chaves = $('chavesCte').value.split(/[\s,;]+/).map(onlyDigits).filter(Boolean);
+
+  return clean({
+    cnpjTransportador: onlyDigits(db.cfg.cnpj),
+    chavesCte: $('fonte').value === 'cte' && chaves.length ? chaves : undefined,
+    km: $('km').value || undefined,
+    quantidadeEixos: $('qtd_eixos').value || undefined,
+    motorista: clean({
+      cpf: onlyDigits($('m_cpf').value),
+      nome: $('m_nome').value || undefined,
+      cnh: clean({ numero: onlyDigits($('m_cnh').value) || undefined, categoria: ($('m_cnh_cat').value || '').toUpperCase() || undefined, vencimento: isoDt($('m_cnh_venc').value) }),
+      telefone: onlyDigits($('m_tel').value) || undefined,
+      dadosPagamento: $('m_pix_tipo').value ? clean({ tipo: $('m_pix_tipo').value, chavePix: ['CPF','CNPJ'].includes($('m_pix_tipo').value) ? onlyDigits($('m_pix').value) : $('m_pix').value }) : undefined,
+    }),
+    proprietario: clean({
+      cpfCnpj: onlyDigits($('p_cpfcnpj').value),
+      nome: $('p_nome').value || undefined,
+      categoria: $('p_cat').value || undefined,
+      rntrc: onlyDigits($('p_rntrc').value) || undefined,
+      endereco: clean({ cep: onlyDigits($('p_cep').value) || undefined, ufProprietario: $('p_uf').value || undefined, codigoIbge: $('p_ibge').value ? Number($('p_ibge').value) : undefined }),
+    }),
+    veiculos: clean({
+      principal: clean({ placa: normPlaca($('v_placa').value), categoria: 'TRACAO', renavam: onlyDigits($('v_renavam').value) || undefined, quantidadeEixos: $('v_eixos').value || undefined, tipoRodado: $('v_rodado').value || undefined, tipoCarroceria: $('v_carroceria').value || undefined, uf: $('v_uf').value || undefined, tara: $('v_tara').value || undefined, capacidadeKg: $('v_cap').value || undefined }),
+      secundarios: reboques.length ? reboques.map((placa) => ({ placa, categoria: 'REBOQUE' })) : undefined,
+    }),
+    dadosCiot: clean({
+      dt: $('fonte').value === 'dt' ? (onlyDigits($('dt').value) || undefined) : undefined,
+      tipoOperacao: $('d_tipoop').value || '01',
+      tipoCarga: $('d_tipocarga').value,
+      participante: $('d_participante').value,
+      ncmProdutoPredominante: onlyDigits($('d_ncm').value),
+      valorCiot: $('d_valorciot').value === '' ? undefined : Number($('d_valorciot').value),
+      valorFrete: $('d_valorfrete').value === '' ? undefined : Number($('d_valorfrete').value),
+      valorCarga: $('d_valorcarga').value === '' ? undefined : Number($('d_valorcarga').value),
+      valorCombustivel: $('d_valorcomb').value === '' ? undefined : Number($('d_valorcomb').value),
+      valorAdiantamento: Number($('d_adiant').value || 0),
+      percentualAdiantamento: $('d_percadiant').value === '' ? undefined : Number($('d_percadiant').value),
+      pesoCarga: $('d_peso').value === '' ? undefined : Number($('d_peso').value),
+      dataInicioViagem: isoDt($('d_inicio').value),
+      dataFinalViagem: isoDt($('d_fim').value),
+      origem: loc($('d_origem').value, $('d_origem_uf').value),
+      destino: loc($('d_destino').value, $('d_destino_uf').value),
+      tomador: part($('d_tomador').value, $('d_tomador_nome').value),
+      destinatario: part($('d_dest').value, ''),
+    }),
+    mdfe: $('md_gerar').checked ? clean({
+      gerar: true, ufInicial: $('md_ufi').value || undefined, ufFinal: $('md_uff').value || undefined,
+      municipioInicial: $('md_muni').value || undefined, municipioFinal: $('md_munf').value || undefined,
+      codigoIbgeMunicipioInicial: $('md_ibgei').value ? Number($('md_ibgei').value) : undefined,
+      codigoIbgeMunicipioFinal: $('md_ibgef').value ? Number($('md_ibgef').value) : undefined,
+      dataInicial: $('md_di').value || undefined, dataFinal: $('md_df').value || undefined,
+      valePedagio: $('md_vp').value ? clean({ valor: Number($('md_vp').value), cnpjFornecedor: onlyDigits($('md_vpcnpj').value) || undefined, numero: $('md_vpnum').value || undefined }) : undefined,
+    }) : undefined,
+  });
+}
+
+function validar() {
+  const e = [];
+  if (!validaCNPJ(db.cfg.cnpj)) e.push('Configure o CNPJ do transportador em Config (14 dígitos válidos).');
+  if (!db.cfg.token) e.push('Configure o token da EmiteAí em Config.');
+  if (!validaCPF($('m_cpf').value)) e.push('CPF do motorista inválido.');
+  if (!validaCpfCnpj($('p_cpfcnpj').value)) e.push('CPF/CNPJ do proprietário inválido.');
+  if (['TAC_INDEPENDENTE','TAC_AGREGADO'].includes($('p_cat').value) && onlyDigits($('p_rntrc').value).length < 8) e.push('RNTRC é obrigatório para TAC.');
+  if (!placaOk($('v_placa').value)) e.push('Placa do veículo inválida.');
+  if (!/^\d{8}$/.test(onlyDigits($('d_ncm').value))) e.push('NCM deve ter 8 dígitos.');
+  if (!($('d_valorciot').value > 0)) e.push('Valor do CIOT deve ser maior que zero.');
+  const temCte = $('fonte').value === 'cte' && $('chavesCte').value.replace(/\D/g, '').length >= 44;
+  const temDt = $('fonte').value === 'dt' && onlyDigits($('dt').value).length > 0;
+  if (!temCte && !temDt) e.push('Informe a chave de CT-e (44 dígitos) ou o número do DT.');
+  if ($('fonte').value === 'cte') {
+    $('chavesCte').value.split(/[\s,;]+/).map(onlyDigits).filter(Boolean).forEach((c, i) => { if (c.length !== 44) e.push(`Chave de CT-e ${i + 1} deve ter 44 dígitos.`); });
+  }
+  const perc = $('d_percadiant').value;
+  if (perc !== '' && (Number(perc) < 0 || Number(perc) > 100)) e.push('Percentual de adiantamento deve ficar entre 0 e 100.');
+  return e;
+}
+
+/* ============ emissão ============ */
+async function emitir() {
+  const erros = validar();
+  if (erros.length) {
+    $('resultado').innerHTML = `<div class="card"><h2 style="margin-top:0;color:var(--danger)">Corrija antes de enviar</h2><ul style="font-size:13.5px;line-height:1.7;padding-left:18px">${erros.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    return;
+  }
+  const btn = $('btnEmitir');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  const payload = montarPayload();
+  const rec = {
+    id: uid(), created_date: new Date().toISOString(), status: 'ENVIANDO',
+    payload, idem: crypto.randomUUID(),
+    resumo: {
+      placa: payload.veiculos?.principal?.placa,
+      motorista: payload.motorista?.nome || payload.motorista?.cpf,
+      valorCiot: payload.dadosCiot?.valorCiot,
+      origem: payload.dadosCiot?.origem?.cidade,
+      destino: payload.dadosCiot?.destino?.cidade,
+    },
+  };
+  db.emissoes.unshift(rec); salvar();
+  try {
+    const r = await api('/ciot/v2/emite-avulso', { method: 'POST', body: payload, idem: rec.idem });
+    Object.assign(rec, { ticketUuid: r?.ticketUuid, status: r?.status || 'PROCESSANDO', mensagem: r?.mensagem || 'Solicitação aceita.' });
+    salvar(); renderResultado(rec);
+    toast('Enviado. Acompanhando a autorização...', 'ok');
+    iniciarPolling(rec.id);
+  } catch (e) {
+    Object.assign(rec, { status: 'ERRO_ENVIO', mensagem: e.message });
+    salvar(); renderResultado(rec);
+    toast(esc(e.message), 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Emitir CIOT';
+  }
+}
+
+function iniciarPolling(id) {
+  clearInterval(pollTimer);
+  let n = 0;
+  pollTimer = setInterval(async () => {
+    n++;
+    const rec = db.emissoes.find((x) => x.id === id);
+    if (!rec || !rec.ticketUuid) { clearInterval(pollTimer); return; }
+    try {
+      const r = await api('/ciot/avulso/' + encodeURIComponent(rec.ticketUuid));
+      Object.assign(rec, {
+        status: (r?.status || rec.status).toUpperCase(),
+        numeroCiot: r?.numeroCiot || rec.numeroCiot,
+        chaveAcesso: r?.chaveAcesso || rec.chaveAcesso,
+        codigoVerificador: r?.codigoVerificador || rec.codigoVerificador,
+        mensagem: r?.message || r?.mensagem || rec.mensagem,
+        consulta: r, ultimaConsulta: new Date().toISOString(),
+        finalizado: STATUS_FINAIS.includes((r?.status || '').toUpperCase()),
+      });
+      salvar(); renderResultado(rec); renderHistorico();
+      if (rec.finalizado || n > 40) clearInterval(pollTimer);
+    } catch { if (n > 10) clearInterval(pollTimer); }
+  }, 5000);
+}
+
+function renderResultado(rec) {
+  if (!rec) return;
+  const st = String(rec.status || '').toUpperCase();
+  const ok = st.includes('AUTORIZ');
+  $('resultado').innerHTML = `
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0">Resultado</h2><span class="pill s-${esc(st)}">${esc(st)}</span>
+      </div>
+      <div class="kv" style="margin-top:14px">
+        <div>Nº do CIOT</div><div class="mono">${esc(rec.numeroCiot || 'aguardando')}</div>
+        <div>Chave de acesso</div><div class="mono">${esc(rec.chaveAcesso || '—')}</div>
+        <div>Cód. verificador</div><div class="mono">${esc(rec.codigoVerificador || '—')}</div>
+        <div>Ticket</div><div class="mono">${esc(rec.ticketUuid || '—')}</div>
+        <div>Placa</div><div>${esc(rec.resumo?.placa || '—')}</div>
+        <div>Motorista</div><div>${esc(rec.resumo?.motorista || '—')}</div>
+        <div>Valor</div><div>${money(rec.resumo?.valorCiot)}</div>
+        <div>Mensagem</div><div>${esc(rec.mensagem || '—')}</div>
+      </div>
+      <div class="row" style="margin-top:16px">
+        <button class="ghost" onclick="sincronizar('${rec.id}')">Atualizar status</button>
+        ${ok ? `<button class="ghost" onclick="imprimir('${rec.id}')">Comprovante</button>` : ''}
+        <button class="ghost" onclick="verJson('${rec.id}')">JSON</button>
+      </div>
+      ${st.includes('REJEIT') ? `<div class="hint">Corrija no Histórico com <b>Editar</b> e reenvie.</div>` : ''}
+    </div>`;
+}
+
+async function sincronizar(id) {
+  const rec = db.emissoes.find((x) => x.id === id);
+  if (!rec?.ticketUuid) return toast('Emissão sem ticket.', 'err');
+  try {
+    const r = await api('/ciot/avulso/' + encodeURIComponent(rec.ticketUuid));
+    Object.assign(rec, {
+      status: (r?.status || rec.status).toUpperCase(), numeroCiot: r?.numeroCiot || rec.numeroCiot,
+      chaveAcesso: r?.chaveAcesso || rec.chaveAcesso, codigoVerificador: r?.codigoVerificador || rec.codigoVerificador,
+      mensagem: r?.message || r?.mensagem || rec.mensagem, consulta: r, finalizado: STATUS_FINAIS.includes((r?.status || '').toUpperCase()),
+    });
+    salvar(); renderResultado(rec); renderHistorico(); toast('Status atualizado.', 'ok');
+  } catch (e) { toast(esc(e.message), 'err'); }
+}
+
+async function editarRejeitado(id) {
+  const rec = db.emissoes.find((x) => x.id === id);
+  if (!rec?.ticketUuid) return toast('Emissão sem ticket.', 'err');
+  const motivo = rec.consulta?.message || rec.mensagem || '';
+  const novo = prompt(`Motivo: ${motivo}\n\nNovo valor do CIOT (vazio = não alterar):`, '');
+  if (novo === null) return;
+  const patch = {};
+  if (novo.trim()) patch.valorCiot = Number(novo.replace(',', '.'));
+  if (!Object.keys(patch).length) return;
+  try {
+    await api('/ciot/avulso/' + encodeURIComponent(rec.ticketUuid), { method: 'PATCH', body: patch });
+    Object.assign(rec, { status: 'PROCESSANDO', mensagem: 'Edição enviada.', finalizado: false, payload: { ...rec.payload, ...patch } });
+    salvar(); renderResultado(rec); iniciarPolling(rec.id); renderHistorico();
+    toast('Edição enviada.', 'ok');
+  } catch (e) { toast(esc(e.message), 'err'); }
+}
+
+function verJson(id) {
+  const rec = id ? db.emissoes.find((x) => x.id === id) : null;
+  const obj = rec ? rec.payload : montarPayload();
+  const w = window.open('', '_blank');
+  w.document.write(`<meta charset="utf-8"><title>JSON</title><pre style="font:12px ui-monospace,monospace;white-space:pre-wrap;padding:16px">${esc(JSON.stringify(obj, null, 2))}</pre>`);
+  w.document.close();
+}
+
+function imprimir(id) {
+  const e = db.emissoes.find((x) => x.id === id); if (!e) return;
+  const p = e.payload || {};
+  const w = window.open('', '_blank');
+  w.document.write(`<html><head><meta charset="utf-8"><title>CIOT ${esc(e.numeroCiot || '')}</title>
+  <style>body{font-family:system-ui,sans-serif;padding:26px;color:#111}h1{font-size:17px;margin:0}
+  .m{color:#666;font-size:11.5px}.big{font-size:26px;font-weight:800;letter-spacing:1px;margin:10px 0}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}
+  td,th{border-bottom:1px solid #e5e5e5;padding:7px;text-align:left;vertical-align:top}
+  th{color:#666;font-size:10.5px;text-transform:uppercase;width:190px}</style></head><body>
+  <h1>CIOT — Comprovante de emissão</h1><div class="m">${dtf(e.created_date)} · ${esc(db.cfg.nome || '')}</div>
+  <div class="big">${esc(e.numeroCiot || '—')}</div>
+  <table>
+    <tr><th>Chave de acesso</th><td style="font-family:ui-monospace,monospace">${esc(e.chaveAcesso || '—')}</td></tr>
+    <tr><th>Transportador</th><td>${esc(db.cfg.nome || '')} — ${esc(db.cfg.cnpj)}</td></tr>
+    <tr><th>Placa</th><td>${esc(p.veiculos?.principal?.placa || '—')} ${(p.veiculos?.secundarios || []).map((s) => '/ ' + esc(s.placa)).join(' ')}</td></tr>
+    <tr><th>Motorista</th><td>${esc(p.motorista?.nome || '')} — CPF ${esc(p.motorista?.cpf || '')}</td></tr>
+    <tr><th>Proprietário</th><td>${esc(p.proprietario?.nome || '')} — ${esc(p.proprietario?.cpfCnpj || '')}</td></tr>
+    <tr><th>Origem / Destino</th><td>${esc(p.dadosCiot?.origem?.cidade || '—')}/${esc(p.dadosCiot?.origem?.uf || '')} → ${esc(p.dadosCiot?.destino?.cidade || '—')}/${esc(p.dadosCiot?.destino?.uf || '')}</td></tr>
+    <tr><th>CT-e</th><td style="font-family:ui-monospace,monospace">${(p.chavesCte || []).join('<br>') || esc(p.dadosCiot?.dt || '—')}</td></tr>
+    <tr><th>Valor do CIOT</th><td>${money(p.dadosCiot?.valorCiot)}</td></tr>
+    <tr><th>Adiantamento</th><td>${money(p.dadosCiot?.valorAdiantamento)}</td></tr>
+    <tr><th>Status</th><td>${esc(e.status)}</td></tr>
+    <tr><th>Ticket EmiteAí</th><td style="font-family:ui-monospace,monospace">${esc(e.ticketUuid || '—')}</td></tr>
+  </table>
+  <p class="m" style="margin-top:22px">A validade oficial é a consulta na ANTT.</p></body></html>`);
+  w.document.close(); setTimeout(() => w.print(), 500);
+}
+
+/* ============ histórico ============ */
+function renderHistorico() {
+  const q = ($('busca')?.value || '').toLowerCase();
+  const rows = (db.emissoes || []).filter((e) => !q || JSON.stringify(e).toLowerCase().includes(q));
+  if (!rows.length) { $('historicoTabela').innerHTML = '<div class="empty">Nenhuma emissão ainda.</div>'; return; }
+  $('historicoTabela').innerHTML = `<div style="overflow:auto"><table>
+    <thead><tr><th>Data</th><th>Placa</th><th>Nº CIOT</th><th>Valor</th><th>Status</th><th></th></tr></thead><tbody>
+    ${rows.map((e) => `<tr>
+      <td>${dtf(e.created_date)}</td><td class="mono">${esc(e.resumo?.placa || '—')}</td>
+      <td class="mono">${esc(e.numeroCiot || '—')}</td><td>${money(e.resumo?.valorCiot)}</td>
+      <td><span class="pill s-${esc(String(e.status).toUpperCase())}">${esc(e.status)}</span></td>
+      <td class="row" style="gap:5px">
+        <button class="mini" onclick="sincronizar('${e.id}')">Atualizar</button>
+        ${String(e.status).toUpperCase().includes('AUTORIZ') ? `<button class="mini" onclick="imprimir('${e.id}')">Imprimir</button>` : ''}
+        ${String(e.status).toUpperCase().includes('REJEIT') ? `<button class="mini" onclick="editarRejeitado('${e.id}')">Editar</button>` : ''}
+      </td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+
+/* ============ cadastros ============ */
+const CAD = {
+  motoristas: { t: 'Motoristas', f: [['cpf','CPF'],['nome','Nome completo'],['telefone','Telefone'],['email','E-mail']] },
+  veiculos: { t: 'Veículos', f: [['placa','Placa'],['renavam','RENAVAM'],['tipoRodado','Tipo de rodado'],['quantidadeEixos','Eixos'],['uf','UF']] },
+  proprietarios: { t: 'Proprietários', f: [['cpfCnpj','CPF/CNPJ'],['nome','Nome / Razão social'],['categoria','Categoria'],['rntrc','RNTRC']] },
+  participantes: { t: 'Tomadores / Destinatários', f: [['cpfCnpj','CPF/CNPJ'],['nome','Nome / Razão social'],['papel','Papel']] },
+};
+let cadAtual = 'motoristas';
+
+function renderCadPanel(col) {
+  cadAtual = col;
+  document.querySelectorAll('#cadTabs button').forEach((b) => b.classList.toggle('on', b.dataset.cad === col));
+  const s = CAD[col]; const rows = db[col] || [];
+  $('cadPanel').innerHTML = `
+    <h2 style="margin-top:0">${s.t}</h2>
+    <div class="grid g${Math.min(4, s.f.length)}">${s.f.map(([k, l]) => `<div><label>${l}</label><input id="cad_${k}" /></div>`).join('')}</div>
+    <div class="row" style="margin-top:12px"><button class="ghost" onclick="addCad('${col}')">Adicionar</button></div>
+    <div style="margin-top:16px;overflow:auto"><table>
+      <thead><tr>${s.f.map(([, l]) => `<th>${l}</th>`).join('')}<th></th></tr></thead><tbody>
+      ${rows.length ? rows.map((r) => `<tr>${s.f.map(([k]) => `<td>${esc(r[k] ?? '—')}</td>`).join('')}<td><button class="mini" onclick="delCad('${col}','${r.id}')">remover</button></td></tr>`).join('')
+        : `<tr><td colspan="${s.f.length + 1}" class="empty">Nada cadastrado.</td></tr>`}
+    </tbody></table></div>`;
+}
+
+function addCad(col) {
+  const row = { id: uid() };
+  CAD[col].f.forEach(([k]) => { const v = $('cad_' + k).value.trim(); if (v) row[k] = v; });
+  if (Object.keys(row).length === 1) return toast('Preencha ao menos um campo.', 'err');
+  if (row.placa) row.placa = normPlaca(row.placa);
+  db[col] = db[col] || []; db[col].push(row); salvar(); renderCadPanel(col); preencherSelects(); toast('Salvo.', 'ok');
+}
+function delCad(col, id) {
+  db[col] = (db[col] || []).filter((r) => r.id !== id); salvar(); renderCadPanel(col); preencherSelects();
+}
+
+function preencherSelects() {
+  const opt = (rows, f) => '<option value="">— usar cadastrado —</option>' + (rows || []).map((r) => `<option value="${r.id}">${esc(f(r))}</option>`).join('');
+  $('motoristaSel').innerHTML = opt(db.motoristas, (m) => `${m.nome || m.cpf} · ${m.cpf}`);
+  $('proprietarioSel').innerHTML = opt(db.proprietarios, (p) => `${p.nome || p.cpfCnpj} · ${p.cpfCnpj}`);
+  $('veiculoSel').innerHTML = opt(db.veiculos, (v) => `${v.placa}${v.tipoRodado ? ' · ' + v.tipoRodado : ''}`);
+}
+function preencherMotorista() {
+  const m = (db.motoristas || []).find((x) => x.id === $('motoristaSel').value); if (!m) return;
+  $('m_cpf').value = m.cpf || ''; $('m_nome').value = m.nome || ''; $('m_tel').value = m.telefone || '';
+  if (m.cnh) { $('m_cnh').value = m.cnh.numero || ''; $('m_cnh_cat').value = m.cnh.categoria || ''; $('m_cnh_venc').value = (m.cnh.vencimento || '').slice(0, 10); }
+}
+function preencherProprietario() {
+  const p = (db.proprietarios || []).find((x) => x.id === $('proprietarioSel').value); if (!p) return;
+  $('p_cpfcnpj').value = p.cpfCnpj || ''; $('p_nome').value = p.nome || '';
+  $('p_cat').value = p.categoria || ''; $('p_rntrc').value = p.rntrc || '';
+}
+function preencherVeiculo() {
+  const v = (db.veiculos || []).find((x) => x.id === $('veiculoSel').value); if (!v) return;
+  $('v_placa').value = v.placa || ''; $('v_renavam').value = v.renavam || '';
+  $('v_eixos').value = v.quantidadeEixos || ''; $('v_rodado').value = v.tipoRodado || '';
+  $('v_uf').value = v.uf || '';
+}
+
+/* ============ config ============ */
+function carregarCfg() {
+  $('c_cnpj').value = db.cfg.cnpj || ''; $('c_nome').value = db.cfg.nome || '';
+  $('c_token').value = db.cfg.token || ''; $('c_ambiente').value = db.cfg.ambiente || 'homolog';
+  atualizarAviso();
+}
+function atualizarAviso() {
+  const faltando = [];
+  if (!validaCNPJ(db.cfg.cnpj)) faltando.push('CNPJ do transportador');
+  if (!db.cfg.token) faltando.push('token da EmiteAí');
+  const el = $('aviso');
+  if (faltando.length) { el.className = 'banner'; el.innerHTML = `<b>Falta configurar:</b> ${faltando.join(' e ')}. Abra a aba <b>Config</b>.`; }
+  else { el.className = 'banner ok'; el.innerHTML = `Pronto para emitir em <b>${db.cfg.ambiente === 'prod' ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}</b> · CNPJ ${esc(db.cfg.cnpj)}`; }
+}
+function salvarCfg() {
+  db.cfg = { cnpj: onlyDigits($('c_cnpj').value), nome: $('c_nome').value.trim(), token: $('c_token').value.trim(), ambiente: $('c_ambiente').value };
+  salvar(); atualizarAviso();
+  toast(db.cfg.token && validaCNPJ(db.cfg.cnpj) ? 'Configuração salva.' : 'Salvo, mas ainda faltam dados.', validaCNPJ(db.cfg.cnpj) ? 'ok' : 'err');
+}
+async function testarToken() {
+  const tokenAntes = db.cfg.token;
+  db.cfg.token = $('c_token').value.trim() || db.cfg.token;
+  db.cfg.ambiente = $('c_ambiente').value;
+  $('cfgStatus').textContent = 'Consultando a EmiteAí...';
+  try {
+    await api('/ciot/avulso/00000000-0000-0000-0000-000000000000');
+    $('cfgStatus').innerHTML = '<span style="color:var(--accent)">Token aceito pela EmiteAí.</span>';
+  } catch (e) {
+    const ok = /não cadastrad|não encontrad|404/i.test(e.message);
+    $('cfgStatus').innerHTML = ok ? '<span style="color:var(--accent)">Token aceito (consulta de teste não encontrou o ticket, o que é esperado).</span>' : `<span style="color:var(--danger)">${esc(e.message)}</span>`;
+  } finally { db.cfg.token = tokenAntes; }
+}
+
+/* ============ backup ============ */
+function exportar() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `portal-ciot-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+}
+function importar(input) {
+  const f = input.files?.[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(String(r.result));
+      if (!confirm('Substituir os dados atuais pelo backup?')) return;
+      db = { ...db, ...d }; salvar(); carregarCfg(); preencherSelects(); renderHistorico(); toast('Backup restaurado.', 'ok');
+    } catch { toast('Arquivo inválido.', 'err'); }
+  };
+  r.readAsText(f);
+}
+function limparTudo() {
+  if (!confirm('Apagar todos os dados deste aparelho? Isso não cancela CIOT já emitidos.')) return;
+  localStorage.removeItem(KEY);
+  db = { cfg: { cnpj: '', nome: '', token: '', ambiente: 'homolog' }, motoristas: [], veiculos: [], proprietarios: [], participantes: [], emissoes: [] };
+  carregarCfg(); preencherSelects(); renderHistorico(); $('resultado').innerHTML = ''; toast('Dados apagados.', 'ok');
+}
+
+/* ============ ui ============ */
+function toast(msg, tipo = '') {
+  const el = document.createElement('div'); el.className = 'toast ' + tipo; el.innerHTML = msg;
+  document.body.appendChild(el); setTimeout(() => el.remove(), tipo === 'err' ? 9000 : 4200);
+}
+function onFonte() {
+  const f = $('fonte').value;
+  $('boxCte').classList.toggle('hide', f !== 'cte');
+  $('boxDt').classList.toggle('hide', f !== 'dt');
+}
+document.querySelectorAll('nav button[data-tab]').forEach((b) => b.onclick = () => {
+  document.querySelectorAll('nav button[data-tab]').forEach((x) => x.classList.toggle('active', x === b));
+  ['emitir','historico','cadastros','config'].forEach((t) => $('tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
+  if (b.dataset.tab === 'historico') renderHistorico();
+  if (b.dataset.tab === 'config') carregarCfg();
+  if (b.dataset.tab === 'cadastros') renderCadPanel(cadAtual);
+  window.scrollTo({ top: 0 });
+});
+document.querySelectorAll('#cadTabs button').forEach((b) => b.onclick = () => renderCadPanel(b.dataset.cad));
+
+/* ============ boot ============ */
+carregar();
+document.querySelectorAll('select.uf').forEach((s) => { s.innerHTML = '<option value="">—</option>' + UFS.map((u) => `<option>${u}</option>`).join(''); });
+$('d_origem_uf').value = 'MG'; $('d_destino_uf').value = 'SP';
+carregarCfg(); preencherSelects(); renderCadPanel('motoristas'); renderHistorico();
+const hoje = new Date(); $('d_inicio').value = hoje.toISOString().slice(0, 10);
+$('d_fim').value = new Date(hoje.getTime() + 2 * 864e5).toISOString().slice(0, 10);
+</script>
+<script>
+/* ============ refinamentos de interface (Efatá) ============ */
+(function () {
+  function pintaEnv() {
+    try {
+      var b = document.getElementById('envBadge');
+      if (!b) return;
+      var prod = (typeof db !== 'undefined' && db && db.cfg && db.cfg.ambiente === 'prod');
+      b.textContent = prod ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO';
+      b.className = 'env ' + (prod ? 'prod' : 'homolog');
+    } catch (e) {}
+  }
+  window.addEventListener('load', pintaEnv);
+  document.querySelectorAll('nav button[data-tab]').forEach(function (b) { b.addEventListener('click', pintaEnv); });
+  document.querySelectorAll('select, input').forEach(function (el) {
+    el.addEventListener('focus', function () { pintaEnv(); }, { once: true });
+  });
+  var _salvarCfg = window.salvarCfg;
+  if (typeof _salvarCfg === 'function') {
+    window.salvarCfg = function () { var r = _salvarCfg.apply(this, arguments); pintaEnv(); return r; };
+  }
+  var _salvarCfg2 = window.carregarCfg;
+  if (typeof _salvarCfg2 === 'function') {
+    window.carregarCfg = function () { var r = _salvarCfg2.apply(this, arguments); pintaEnv(); return r; };
+  }
+})();
+</script>
+</body>
+</html>
